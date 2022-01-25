@@ -26,7 +26,7 @@ public class AwsS3ConfigurationTest {
 
     @Test
     public void testAccessKeyConfig() {
-        assertEquals(s3Configuration.getAWSCredentials().accessKeyId(), "access—key");
+        assertEquals(s3Configuration.getAWSCredentials().accessKeyId(), "access-key");
     }
 
     @Test

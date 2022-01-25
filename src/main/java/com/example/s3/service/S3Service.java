@@ -6,13 +6,17 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 public class S3Service {
 
     @Autowired
     S3Client s3Client;
 
-    public void putObject(String bucketName, String key) {
+    public void putEmptyObject(String bucketName, String key) {
 
         PutObjectRequest request = PutObjectRequest.builder()
                 .bucket(bucketName)
@@ -72,6 +76,38 @@ public class S3Service {
             System.err.println(e.awsErrorDetails().errorMessage());
             System.exit(1);
         }
+    }
+
+    public boolean checkObjectExists(String bucketName, String prefix) {
+        return getNumberOfObjects(bucketName, prefix) >= 1;
+    }
+
+    private int getNumberOfObjects(String bucketName, String prefix) {
+        int items = listBucketObjects(bucketName, prefix).size();
+        return items;
+    }
+
+    public List<String> listBucketObjects(String bucketName, String prefix) {
+        try {
+            ListObjectsRequest listObjects = ListObjectsRequest
+                    .builder()
+                    .bucket(bucketName)
+                    .prefix(prefix)
+                    .build();
+
+            ListObjectsResponse res = s3Client.listObjects(listObjects);
+
+            List<String> keyList = res.contents()
+                    .stream()
+                    .map(results -> results.key())
+                    .collect(Collectors.toList());
+
+            return keyList;
+
+        } catch (S3Exception e) {
+            System.err.println(e.awsErrorDetails().errorMessage());
+        }
+        return Collections.emptyList();
     }
 }
 
