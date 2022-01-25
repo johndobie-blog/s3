@@ -1,40 +1,56 @@
-package com.example.s3.config;
+package com.example.s3.service;
 
+import com.example.s3.config.AwsS3Configuration;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestPropertySource;
-import software.amazon.awssdk.core.sync.RequestBody;
-import software.amazon.awssdk.services.s3.S3Client;
-import software.amazon.awssdk.services.s3.model.*;
-
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest
-@ContextConfiguration(classes = {AwsS3Configuration.class})
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@ContextConfiguration(classes = {AwsS3Configuration.class, S3Service.class})
 @TestPropertySource(properties = {
         "cloud.aws.credentials.access-key=",
         "cloud.aws.credentials.secret=",
         "cloud.aws.region=eu-west-1"
 })
-public class S3Test {
+public class S3ServiceTest {
+
+    private static final String TEST_BUCKET_NAME="dobie-test-bucket";
+
+    private static final String TEST_FOLDER_1 = "test1/";
+    private static final String TEST_FOLDER_2 = "test2/";
+    private static final String TEST_FOLDER_3 = "test2/test3/";
 
     @Autowired
-    S3Client s3Client;
+    S3Service s3Service;
 
-    @Test
-    public void testPutBucket() {
-        putObject("dobie-test-bucket", "test9");
+    @BeforeAll
+    public void setup(){
+        s3Service.createBucket(TEST_BUCKET_NAME);
+        s3Service.putObject(TEST_BUCKET_NAME, TEST_FOLDER_1);
+        s3Service.putObject(TEST_BUCKET_NAME, TEST_FOLDER_2);
+        s3Service.putObject(TEST_BUCKET_NAME, TEST_FOLDER_3);
+    }
+
+    @AfterAll
+    public void teardown(){
+        s3Service.deleteBucketAndAllObjects(TEST_BUCKET_NAME);
     }
 
     @Test
+    public void testPutBucket() {
+
+    }
+
+/*    @Test
     public void testNoBucketFails() {
         assertEquals(checkBucketExists("dobie-test-bucketdsasd"), false);
     }
@@ -51,11 +67,11 @@ public class S3Test {
         assertEquals(checkBucketExists("dobie-test-bucket"), true);
     }
 
-/*    @Test
+*//*    @Test
     public void testRealSubBucketExists() {
         String TEST_SUB_BUCKET = "dobie-test-bucket/test9";
         assertThat(checkBucketExists(TEST_SUB_BUCKET)).isTrue();
-    }*/
+    }*//*
 
     @Test
     public void testListBucketObjects() {
@@ -92,9 +108,7 @@ public class S3Test {
             s3Client.createBucket(bucketRequest);
 
         } catch (S3Exception e) {
-            System.err.println(e.awsErrorDetails()
-                    .errorMessage());
-            System.exit(1);
+            System.err.println(e.awsErrorDetails().errorMessage());
         }
     }
 
@@ -176,6 +190,7 @@ public class S3Test {
 
     private static long calKb(Long val) {
         return val / 1024;
-    }
+    }*/
+
 
 }
